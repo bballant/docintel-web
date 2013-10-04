@@ -1,5 +1,6 @@
-x Logging
-* git
+x git
 x Database script and test data
-* Load from filesystem
+x Load from filesystem
 * UI First Pass
+* Logging Configuration
+* General Configuration

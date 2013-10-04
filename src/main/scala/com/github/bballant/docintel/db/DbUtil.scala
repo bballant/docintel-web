@@ -1,8 +1,6 @@
 package com.github.bballant.docintel.db
 
-import java.sql.Connection
-import java.sql.DriverManager
-import java.sql.ResultSet
+import java.sql.{PreparedStatement, Connection, DriverManager, ResultSet}
 
 /**
  * Date Created: 9/7/13
@@ -11,7 +9,7 @@ import java.sql.ResultSet
 object DbUtil {
   Class.forName("org.sqlite.JDBC")
 
-  def getConnection = DriverManager.getConnection("jdbc:sqlite:questions.db")
+  def getConnection = DriverManager.getConnection("jdbc:sqlite::resource:questions.db")
 
   def withConnection[A](fn: Connection => A): A = {
     val conn = getConnection
@@ -22,12 +20,21 @@ object DbUtil {
     }
   }
 
-  def query[A](q: String)(fn: ResultSet => A): A = {
+  def query[A](q: String, params: Seq[Any])(fn: ResultSet => A): A = {
     withConnection { conn =>
-      val statement = conn.createStatement
+      var statement: PreparedStatement = null
       try {
+        statement = conn.prepareStatement(q)
+        params.zipWithIndex.foreach { case(param, i) =>
+          val x = i + 1
+          param match {
+            case n: Int => statement.setInt(x, n)
+            case n: Long => statement.setLong(x, n)
+            case _ => statement.setString(x, param.toString)
+          }
+        }
         statement.setQueryTimeout(30)
-        val rs = statement.executeQuery(q)
+        val rs = statement.executeQuery
         try fn(rs)
         finally if (rs != null) rs.close()
       } finally {
@@ -36,11 +43,14 @@ object DbUtil {
     }
   }
 
-  def list[A](q: String)(fn: ResultSet => A): Seq[A] = {
+  def list[A](q: String, params: Seq[Any])(fn: ResultSet => A): Seq[A] = {
     val result = collection.mutable.ListBuffer[A]()
-    query(q) { rs =>
+    query(q, params) { rs =>
       while(rs.next()) result += fn(rs)
     }
     result.toSeq
   }
+
+  def get[A](q: String, params: Seq[Any])(fn: ResultSet => A): Option[A] =
+    list(q, params)(fn).headOption
 }

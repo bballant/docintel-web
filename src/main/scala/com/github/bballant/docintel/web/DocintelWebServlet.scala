@@ -26,4 +26,12 @@ class DocintelWebServlet extends DocintelWebStack {
     logger.info("getting questions")
     ssp("index", "questions" -> questionsDb.getQuestions)
   }
+
+  get("/question/:id") {
+    contentType="text/html"
+
+    val id = params("id").toLong
+    logger.info("getting question " + id)
+    ssp("question", "question" -> questionsDb.getQuestion(id))
+  }
 }

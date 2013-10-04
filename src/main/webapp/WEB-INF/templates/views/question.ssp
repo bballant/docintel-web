@@ -2,26 +2,30 @@
 
 #{ attributes("title") = "Questions" }#
 
-<%@ val questions: Seq[Question] %>
+<%@ val question: Option[Question] %>
 
 <html>
 <head>
   <link href='http://fonts.googleapis.com/css?family=Merriweather:400,900' rel='stylesheet' type='text/css'>
   <style>
     body {
-      font-family: 'Merriweather', serif;
+    font-family: 'Merriweather', serif;
     }
     .menu {
-      list-style: none;
+    list-style: none;
     }
   </style>
   <title>Questions</title>
 </head>
 <body>
-  <ul class="menu">
-    <% questions.foreach { q => %>
-      <li><strong>${q.unit}-${q.number}</strong> ${q.title} ${q.code} </li>
-    <% } %>
-  </ul>
+<ul class="menu">
+  <% if (question.isEmpty) { %>
+    <h1>None found</h1>
+  <% } %>
+
+  <% question.foreach { q => %>
+  <li><strong>${q.unit}-${q.number}</strong> ${q.title} ${q.code} </li>
+  <% } %>
+</ul>
 </body>
 </html>
